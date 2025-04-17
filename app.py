@@ -86,3 +86,18 @@ def serve_openapi_yaml():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+    from memory_bot import save_judgment  # ← 追加
+
+@app.route("/save_judgment", methods=["POST"])
+def save():
+    data = request.json
+    input_text = data.get("input")
+    result = data.get("result")
+
+    if not input_text or not result:
+        return jsonify({"error": "input and result are required"}), 400
+
+    save_judgment(input_text, result)
+    return jsonify({"status": "記録しました！"})
+
