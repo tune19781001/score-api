@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "スコア評価Bot",
+  "name_for_model": "scoreEvaluationBot",
+  "description_for_human": "RSI, VIX, ROEなどから投資判断スコアを返してくれるBot",
+  "description_for_model": "API that receives market and technical indicators and returns a judgment score with comments.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://score-api-3pbw.onrender.com/.well-known/openapi.yaml"
+  },
+  "logo_url": "https://score-api-3pbw.onrender.com/logo.png",
+  "contact_email": "tsunekawa.t@gmail.com",
+  "legal_info_url": "https://score-api-3pbw.onrender.com/legal"
+}
