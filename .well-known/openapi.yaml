@@ -4,7 +4,7 @@ info:
   description: 投資判断スコアを返すAPI。RSI, VIXなどを元に総合スコアとコメントを返します。
   version: "1.0.0"
 servers:
-  - url: https://score-api-3pbw.onrender.com
+  - url: https://score-api-3pbw.onrender.com/
 paths:
   /score:
     post:
