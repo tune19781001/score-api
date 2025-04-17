@@ -1,6 +1,5 @@
-# app.py
-
 from flask import Flask, request, jsonify
+import os  # ← これがポイント！
 
 app = Flask(__name__)
 
@@ -41,12 +40,10 @@ def score_evaluation(inputs):
 
     return total, comments
 
-# ルートエンドポイント（確認用）
 @app.route("/")
 def index():
     return "スコア評価BotのAPIが起動しています！"
 
-# 評価用のPOSTエンドポイント
 @app.route("/score", methods=["POST"])
 def score():
     data = request.json
@@ -58,7 +55,6 @@ def score():
     }
     return jsonify(result)
 
-# 判定ロジック
 def judge(score):
     if score >= 15:
         return "🟢 強気判断（条件が整っている）"
@@ -70,4 +66,5 @@ def judge(score):
         return "🔴 弱気（見送り推奨）"
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    port = int(os.environ.get("PORT", 5000))  # ← ここがRender連携のカギ！
+    app.run(host="0.0.0.0", port=port)
