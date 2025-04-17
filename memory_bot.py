@@ -8,7 +8,6 @@
 \f0\fs24 \cf0 from langchain.vectorstores import Chroma\
 from langchain.embeddings import OpenAIEmbeddings\
 from langchain.memory import VectorStoreRetrieverMemory\
-from langchain.schema import messages_from_dict, messages_to_dict\
 \
 # \uc0\u12505 \u12463 \u12488 \u12523 \u35352 \u25014 \u12398 \u21021 \u26399 \u21270 \
 embedding = OpenAIEmbeddings()\
