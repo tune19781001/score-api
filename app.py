@@ -4,7 +4,8 @@ from memory_bot import (
     save_judgment,
     search_similar,
     update_conversation,
-    get_conversation_history
+    get_conversation_history,
+    get_response  # 会話補助追加分
 )
 
 app = Flask(__name__)
@@ -72,7 +73,6 @@ def score():
         "saved": True
     }
 
-    # 会話メモリ＋記録を保存
     update_conversation(str(data), str(result))
     save_judgment(str(data), judgment)
 
@@ -112,16 +112,18 @@ def history():
     history_text = get_conversation_history(limit=3)
     return jsonify({"history": history_text})
 
-# ✅ UptimeRobot 対応用の memory API（GET + POST対応）
+# ✅ UptimeRobot 対応用の memory API（GET + 会話応答付きPOST）
 @app.route("/memory", methods=["GET", "POST"])
 def memory_check():
     if request.method == "GET":
         return "Memory bot is alive!"
 
-    data = request.json
-    input_text = data.get("input", "")
-    response = f"Echo: {input_text}"  # ここを memory_bot.get_response(input_text) に置き換えてもOK
-    return jsonify({"response": response})
+    try:
+        input_text = request.json.get("input", "")
+        response = get_response(input_text)
+        return jsonify({"response": response})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # GPT用ファイル配信（.well-known）
 @app.route('/.well-known/<path:filename>')
