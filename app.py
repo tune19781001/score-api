@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify, send_from_directory
 import os
-from memory_bot import save_judgment, search_similar  # ← 検索関数も読み込み！
+from memory_bot import (
+    save_judgment,
+    search_similar,
+    update_conversation,
+    get_conversation_history
+)
 
 app = Flask(__name__)
 
@@ -41,7 +46,7 @@ def score_evaluation(inputs):
 
     return total, comments
 
-# スコア判定ロジック
+# 判定ロジック
 def judge(score):
     if score >= 15:
         return "🟢 強気判断（条件が整っている）"
@@ -57,7 +62,7 @@ def judge(score):
 def index():
     return "スコア評価BotのAPIが起動しています！"
 
-# スコア評価API
+# ✅ スコア評価API（会話メモリ追加済み）
 @app.route("/score", methods=["POST"])
 def score():
     data = request.json
@@ -67,6 +72,7 @@ def score():
         "comments": comments,
         "judgment": judge(score)
     }
+    update_conversation(str(data), str(result))  # 会話メモリを更新！
     return jsonify(result)
 
 # ✅ 判断記録API
@@ -82,7 +88,7 @@ def save():
     save_judgment(input_text, result)
     return jsonify({"status": "記録しました！"})
 
-# ✅ 類似判断検索API ← NEW！
+# ✅ 類似判断検索API
 @app.route("/search_similar", methods=["POST"])
 def search():
     data = request.json
@@ -94,12 +100,18 @@ def search():
     results = search_similar(input_text)
     return jsonify(results)
 
-# .well-known 配信（GPT用）
+# ✅ 会話履歴取得API（おまけ機能）
+@app.route("/conversation_history", methods=["GET"])
+def history():
+    history_text = get_conversation_history()
+    return jsonify({"history": history_text})
+
+# GPT用ファイル配信（.well-known）
 @app.route('/.well-known/<path:filename>')
 def well_known_static(filename):
     return send_from_directory('.well-known', filename)
 
-# YAMLファイル専用ルート
+# YAMLファイル配信（GPT用）
 @app.route('/.well-known/openapi.yaml')
 def serve_openapi_yaml():
     return send_from_directory(
@@ -108,7 +120,7 @@ def serve_openapi_yaml():
         mimetype='application/yaml'
     )
 
-# Flask起動設定（Render対応）
+# Flask起動設定（Render用）
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
