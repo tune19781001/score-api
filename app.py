@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 import os
+from memory_bot import save_judgment  # ← 先に読み込んでおく
 
 app = Flask(__name__)
 
@@ -82,13 +83,7 @@ def serve_openapi_yaml():
         mimetype='application/yaml'
     )
 
-# Flaskアプリ起動（Render用）
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-
-    from memory_bot import save_judgment  # ← 追加
-
+# ✅ 記憶保存API（LangChain連携）
 @app.route("/save_judgment", methods=["POST"])
 def save():
     data = request.json
@@ -101,3 +96,7 @@ def save():
     save_judgment(input_text, result)
     return jsonify({"status": "記録しました！"})
 
+# Flaskアプリ起動（Render用）
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
