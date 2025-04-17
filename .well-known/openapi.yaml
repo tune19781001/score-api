@@ -2,14 +2,14 @@ openapi: 3.1.0
 info:
   title: スコア評価Bot API
   description: 投資判断スコアを返すAPI。RSI, VIXなどを元に総合スコアとコメントを返します。
-  version: "1.0.0"
+  version: 1.0.0
 servers:
-  - url: https://score-api-3pbw.onrender.com/
+  - url: https://score-api-3pbw.onrender.com
 paths:
   /score:
     post:
       summary: 市場情報からスコア評価を取得する
-      operationId: getScore
+      operationId: getMarketScore  # ← GPT用にわかりやすく修正！
       requestBody:
         required: true
         content:
@@ -55,7 +55,7 @@ paths:
                 - roe
                 - profit_margin
       responses:
-        '200':
+        "200":
           description: 正常にスコアが返されたとき
           content:
             application/json:
@@ -64,10 +64,12 @@ paths:
                 properties:
                   score:
                     type: number
-                    description: 総合スコア
+                    description: 総合スコア（0〜20）
                   comments:
                     type: array
+                    description: 評価コメント一覧
                     items:
                       type: string
                   judgment:
                     type: string
+                    description: 最終判定（🟢など）
