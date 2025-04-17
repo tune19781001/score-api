@@ -1,5 +1,5 @@
-from flask import Flask, request, jsonify
-import os  # ← これがポイント！
+from flask import Flask, request, jsonify, send_from_directory
+import os
 
 app = Flask(__name__)
 
@@ -40,10 +40,12 @@ def score_evaluation(inputs):
 
     return total, comments
 
+# トップページ（動作確認用）
 @app.route("/")
 def index():
     return "スコア評価BotのAPIが起動しています！"
 
+# スコア評価API
 @app.route("/score", methods=["POST"])
 def score():
     data = request.json
@@ -55,6 +57,12 @@ def score():
     }
     return jsonify(result)
 
+# .well-known フォルダ内のファイルを返す
+@app.route('/.well-known/<path:filename>')
+def well_known_static(filename):
+    return send_from_directory('.well-known', filename)
+
+# スコア判定
 def judge(score):
     if score >= 15:
         return "🟢 強気判断（条件が整っている）"
@@ -65,6 +73,7 @@ def judge(score):
     else:
         return "🔴 弱気（見送り推奨）"
 
+# アプリ起動設定（Render用）
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # ← ここがRender連携のカギ！
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
