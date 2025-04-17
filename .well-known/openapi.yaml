@@ -9,7 +9,7 @@ paths:
   /score:
     post:
       summary: 市場情報からスコア評価を取得する
-      operationId: getMarketScore  # ← GPT用にわかりやすく修正！
+      operationId: getScore
       requestBody:
         required: true
         content:
@@ -64,7 +64,7 @@ paths:
                 properties:
                   score:
                     type: number
-                    description: 総合スコア（0〜20）
+                    description: 総合スコア
                   comments:
                     type: array
                     description: 評価コメント一覧
@@ -73,3 +73,34 @@ paths:
                   judgment:
                     type: string
                     description: 最終判定（🟢など）
+
+  /save_judgment:
+    post:
+      summary: 判断結果を記憶に保存する
+      operationId: saveJudgment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input:
+                  type: string
+                  description: 判断に使った自然文（例：VIXが18でRSIが29だった）
+                result:
+                  type: string
+                  description: 結果として出した判断（例：🟢 強気判断）
+              required:
+                - input
+                - result
+      responses:
+        "200":
+          description: 記録完了メッセージ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
