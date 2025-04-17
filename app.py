@@ -14,7 +14,6 @@ def score_evaluation(inputs):
     total = 0
     comments = []
 
-    # 地合い評価
     if inputs["spy"] > 0 and inputs["qqq"] > 0:
         total += 2
         comments.append("SPY/QQQが上昇 → 地合い良好")
@@ -25,7 +24,6 @@ def score_evaluation(inputs):
         total += 1
         comments.append("為替安定ゾーン")
 
-    # テクニカル評価
     if inputs["rsi"] < 30:
         total += 2
         comments.append("RSI30以下 → 売られすぎで反発期待")
@@ -36,7 +34,6 @@ def score_evaluation(inputs):
         total += 1
         comments.append("移動平均線上抜け")
 
-    # 財務評価
     if inputs["roe"] > 10:
         total += 1
         comments.append("ROE > 10% → 経営効率◎")
@@ -57,22 +54,28 @@ def judge(score):
     else:
         return "🔴 弱気（見送り推奨）"
 
-# トップページ
 @app.route("/")
 def index():
     return "スコア評価BotのAPIが起動しています！"
 
-# ✅ スコア評価API（会話メモリ追加済み）
+# ✅ スコア評価API（保存・会話メモリ付き）
 @app.route("/score", methods=["POST"])
 def score():
     data = request.json
-    score, comments = score_evaluation(data)
+    score_val, comments = score_evaluation(data)
+    judgment = judge(score_val)
+
     result = {
-        "score": score,
+        "score": score_val,
         "comments": comments,
-        "judgment": judge(score)
+        "judgment": judgment,
+        "saved": True
     }
-    update_conversation(str(data), str(result))  # 会話メモリを更新！
+
+    # 会話メモリ＋記録を保存
+    update_conversation(str(data), str(result))
+    save_judgment(str(data), judgment)
+
     return jsonify(result)
 
 # ✅ 判断記録API
@@ -88,7 +91,7 @@ def save():
     save_judgment(input_text, result)
     return jsonify({"status": "記録しました！"})
 
-# ✅ 類似判断検索API
+# ✅ 類似判断検索API（整形済みで返す）
 @app.route("/search_similar", methods=["POST"])
 def search():
     data = request.json
@@ -97,13 +100,17 @@ def search():
     if not input_text:
         return jsonify({"error": "input is required"}), 400
 
-    results = search_similar(input_text)
-    return jsonify(results)
+    raw = search_similar(input_text)
+    # 整形処理："input: ...\noutput: ..." を分解
+    history_text = raw.get("history", "")
+    lines = history_text.strip().split("\n")
+    pairs = [{"input": lines[i][7:], "output": lines[i + 1][8:]} for i in range(0, len(lines)-1, 2)]
+    return jsonify({"results": pairs})
 
-# ✅ 会話履歴取得API（おまけ機能）
+# ✅ 会話履歴API（最新3件のみ返す）
 @app.route("/conversation_history", methods=["GET"])
 def history():
-    history_text = get_conversation_history()
+    history_text = get_conversation_history(limit=3)
     return jsonify({"history": history_text})
 
 # GPT用ファイル配信（.well-known）
@@ -111,7 +118,6 @@ def history():
 def well_known_static(filename):
     return send_from_directory('.well-known', filename)
 
-# YAMLファイル配信（GPT用）
 @app.route('/.well-known/openapi.yaml')
 def serve_openapi_yaml():
     return send_from_directory(
@@ -120,7 +126,7 @@ def serve_openapi_yaml():
         mimetype='application/yaml'
     )
 
-# Flask起動設定（Render用）
+# Flask起動（Render用）
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
