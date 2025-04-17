@@ -1,10 +1,10 @@
-from langchain.vectorstores import Chroma
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
 from langchain.memory import VectorStoreRetrieverMemory
 
-# ベクトル記憶の初期化（Render対応：保存せずにin_memoryで動作させる）
+# ベクトル記憶の初期化（Render対応：保存せずにメモリ上で動作）
 embedding = OpenAIEmbeddings()
-vectorstore = Chroma(embedding_function=embedding, in_memory=True)
+vectorstore = Chroma(embedding_function=embedding)  # in_memoryは不要になった
 
 # LangChain用の記憶メモリを作成
 memory = VectorStoreRetrieverMemory(retriever=vectorstore.as_retriever())
@@ -18,4 +18,3 @@ def search_similar(input_text: str):
     """似た判断を検索する関数"""
     results = memory.load_memory_variables({"input": input_text})
     return results
-# 最終チェック：保存されたか確認用
