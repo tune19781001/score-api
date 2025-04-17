@@ -101,7 +101,6 @@ def search():
         return jsonify({"error": "input is required"}), 400
 
     raw = search_similar(input_text)
-    # 整形処理："input: ...\noutput: ..." を分解
     history_text = raw.get("history", "")
     lines = history_text.strip().split("\n")
     pairs = [{"input": lines[i][7:], "output": lines[i + 1][8:]} for i in range(0, len(lines)-1, 2)]
@@ -112,6 +111,17 @@ def search():
 def history():
     history_text = get_conversation_history(limit=3)
     return jsonify({"history": history_text})
+
+# ✅ UptimeRobot 対応用の memory API（GET + POST対応）
+@app.route("/memory", methods=["GET", "POST"])
+def memory_check():
+    if request.method == "GET":
+        return "Memory bot is alive!"
+
+    data = request.json
+    input_text = data.get("input", "")
+    response = f"Echo: {input_text}"  # ここを memory_bot.get_response(input_text) に置き換えてもOK
+    return jsonify({"response": response})
 
 # GPT用ファイル配信（.well-known）
 @app.route('/.well-known/<path:filename>')
