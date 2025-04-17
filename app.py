@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 import os
-from memory_bot import save_judgment  # ← 先に読み込んでおく
+from memory_bot import save_judgment, search_similar  # ← 検索関数も読み込み！
 
 app = Flask(__name__)
 
@@ -41,6 +41,17 @@ def score_evaluation(inputs):
 
     return total, comments
 
+# スコア判定ロジック
+def judge(score):
+    if score >= 15:
+        return "🟢 強気判断（条件が整っている）"
+    elif score >= 12:
+        return "🟡 条件付きGO（不安要素あり）"
+    elif score >= 10:
+        return "🟠 保留（様子見）"
+    else:
+        return "🔴 弱気（見送り推奨）"
+
 # トップページ
 @app.route("/")
 def index():
@@ -58,32 +69,7 @@ def score():
     }
     return jsonify(result)
 
-# スコア判定
-def judge(score):
-    if score >= 15:
-        return "🟢 強気判断（条件が整っている）"
-    elif score >= 12:
-        return "🟡 条件付きGO（不安要素あり）"
-    elif score >= 10:
-        return "🟠 保留（様子見）"
-    else:
-        return "🔴 弱気（見送り推奨）"
-
-# .well-known フォルダ全体を返す（補助）
-@app.route('/.well-known/<path:filename>')
-def well_known_static(filename):
-    return send_from_directory('.well-known', filename)
-
-# openapi.yaml を正しいMIMEタイプで返す（重要！）
-@app.route('/.well-known/openapi.yaml')
-def serve_openapi_yaml():
-    return send_from_directory(
-        '.well-known',
-        'openapi.yaml',
-        mimetype='application/yaml'
-    )
-
-# ✅ 記憶保存API（LangChain連携）
+# ✅ 判断記録API
 @app.route("/save_judgment", methods=["POST"])
 def save():
     data = request.json
@@ -96,7 +82,33 @@ def save():
     save_judgment(input_text, result)
     return jsonify({"status": "記録しました！"})
 
-# Flaskアプリ起動（Render用）
+# ✅ 類似判断検索API ← NEW！
+@app.route("/search_similar", methods=["POST"])
+def search():
+    data = request.json
+    input_text = data.get("input")
+
+    if not input_text:
+        return jsonify({"error": "input is required"}), 400
+
+    results = search_similar(input_text)
+    return jsonify(results)
+
+# .well-known 配信（GPT用）
+@app.route('/.well-known/<path:filename>')
+def well_known_static(filename):
+    return send_from_directory('.well-known', filename)
+
+# YAMLファイル専用ルート
+@app.route('/.well-known/openapi.yaml')
+def serve_openapi_yaml():
+    return send_from_directory(
+        '.well-known',
+        'openapi.yaml',
+        mimetype='application/yaml'
+    )
+
+# Flask起動設定（Render対応）
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
