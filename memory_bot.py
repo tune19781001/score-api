@@ -2,9 +2,9 @@ from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.memory import VectorStoreRetrieverMemory
 
-# ベクトル記憶の初期化
+# ベクトル記憶の初期化（Render対応：保存せずにin_memoryで動作させる）
 embedding = OpenAIEmbeddings()
-vectorstore = Chroma(persist_directory="./memory_store", embedding_function=embedding)
+vectorstore = Chroma(embedding_function=embedding, in_memory=True)
 
 # LangChain用の記憶メモリを作成
 memory = VectorStoreRetrieverMemory(retriever=vectorstore.as_retriever())
