@@ -18,3 +18,4 @@ def search_similar(input_text: str):
     """似た判断を検索する関数"""
     results = memory.load_memory_variables({"input": input_text})
     return results
+# 最終チェック：保存されたか確認用
