@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: 3.1.0
 info:
   title: スコア評価Bot API
   description: 投資判断スコアを返すAPI。RSI, VIXなどを元に総合スコアとコメントを返します。
