@@ -5,61 +5,60 @@ from memory_bot import (
     search_similar,
     update_conversation,
     get_conversation_history,
-    get_response  # 会話補助追加分
+    get_response
 )
 
 app = Flask(__name__)
 
-# スコア評価関数（簡易版）
+# Score evaluation logic
 def score_evaluation(inputs):
     total = 0
     comments = []
 
     if inputs["spy"] > 0 and inputs["qqq"] > 0:
         total += 2
-        comments.append("SPY/QQQが上昇 → 地合い良好")
+        comments.append("SPY/QQQ rising - strong market")
     if inputs["vix"] < 20:
         total += 1
-        comments.append("VIX低下 → リスク低め")
+        comments.append("Low VIX - low risk")
     if 145 <= inputs["usd_jpy"] <= 155:
         total += 1
-        comments.append("為替安定ゾーン")
+        comments.append("Stable exchange rate")
 
     if inputs["rsi"] < 30:
         total += 2
-        comments.append("RSI30以下 → 売られすぎで反発期待")
+        comments.append("RSI below 30 - oversold, rebound expected")
     if inputs["volume_ratio"] > 1.5:
         total += 1
-        comments.append("出来高急増 → 注目度高")
+        comments.append("High volume - high attention")
     if inputs["ma_break"]:
         total += 1
-        comments.append("移動平均線上抜け")
+        comments.append("Price broke above MA")
 
     if inputs["roe"] > 10:
         total += 1
-        comments.append("ROE > 10% → 経営効率◎")
+        comments.append("ROE > 10% - good efficiency")
     if inputs["profit_margin"] > 15:
         total += 1
-        comments.append("利益率高い → 収益性あり")
+        comments.append("High profit margin - profitable")
 
     return total, comments
 
-# 判定ロジック
+# Final judgment logic
 def judge(score):
     if score >= 15:
-        return "🟢 強気判断（条件が整っている）"
+        return "Strong Buy"
     elif score >= 12:
-        return "🟡 条件付きGO（不安要素あり）"
+        return "Buy with Caution"
     elif score >= 10:
-        return "🟠 保留（様子見）"
+        return "Hold"
     else:
-        return "🔴 弱気（見送り推奨）"
+        return "Sell"
 
 @app.route("/")
 def index():
-    return "スコア評価BotのAPIが起動しています！"
+    return "Score Evaluation API is running!"
 
-# ✅ スコア評価API（保存・会話メモリ付き）
 @app.route("/score", methods=["POST"])
 def score():
     data = request.json
@@ -78,7 +77,6 @@ def score():
 
     return jsonify(result)
 
-# ✅ 判断記録API
 @app.route("/save_judgment", methods=["POST"])
 def save():
     data = request.json
@@ -89,9 +87,8 @@ def save():
         return jsonify({"error": "input and result are required"}), 400
 
     save_judgment(input_text, result)
-    return jsonify({"status": "記録しました！"})
+    return jsonify({"status": "Saved!"})
 
-# ✅ 類似判断検索API（整形済みで返す）
 @app.route("/search_similar", methods=["POST"])
 def search():
     data = request.json
@@ -106,13 +103,11 @@ def search():
     pairs = [{"input": lines[i][7:], "output": lines[i + 1][8:]} for i in range(0, len(lines)-1, 2)]
     return jsonify({"results": pairs})
 
-# ✅ 会話履歴API（最新3件のみ返す）
 @app.route("/conversation_history", methods=["GET"])
 def history():
     history_text = get_conversation_history(limit=3)
     return jsonify({"history": history_text})
 
-# ✅ UptimeRobot 対応用の memory API（GET + 会話応答付きPOST）
 @app.route("/memory", methods=["GET", "POST"])
 def memory_check():
     if request.method == "GET":
@@ -125,7 +120,7 @@ def memory_check():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# GPT用ファイル配信（.well-known）
+# GPTs用 .well-known 配信
 @app.route('/.well-known/<path:filename>')
 def well_known_static(filename):
     return send_from_directory('.well-known', filename)
@@ -138,7 +133,7 @@ def serve_openapi_yaml():
         mimetype='application/yaml'
     )
 
-# Flask起動（Render用）
+# Flask startup for Render
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

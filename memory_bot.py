@@ -1,51 +1,50 @@
-
 from langchain_openai import OpenAIEmbeddings
-from langchain_pinecone import Pinecone as LangchainPinecone  # ← ← ← ここ変更！
+from langchain_pinecone import Pinecone as LangchainPinecone
 from langchain.memory import VectorStoreRetrieverMemory
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from pinecone import Pinecone, ServerlessSpec
 import os
 
-# ✅ 環境変数からAPIキー取得
-PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY", "あなたのキー")
+# Get API key from environment variable
+PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY", "your-key")
 INDEX_NAME = "judgment-log"
 
-# ✅ Pinecone新SDK対応（インスタンス作成）
+# Initialize Pinecone
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
-# ✅ インデックスを取得（※ここは旧形式と同じ）
+# Get index
 index = pc.Index(INDEX_NAME)
 
-# ✅ OpenAI Embedding モデル
+# OpenAI Embedding model
 embedding = OpenAIEmbeddings()
 
-# ✅ LangChain対応のPineconeラッパー
+# Pinecone wrapper for LangChain
 vectorstore = LangchainPinecone(
     index=index,
     embedding=embedding,
-    text_key="text"  # メタデータではなく本文を保存・検索
+    text_key="text"
 )
 
-# ✅ 検索メモリの準備
+# Prepare retriever memory
 memory_retriever = VectorStoreRetrieverMemory(retriever=vectorstore.as_retriever())
 
-# ✅ 会話メモリ（チャットの流れ保持）
+# Conversation memory for tracking chat history
 conversation_memory = ConversationBufferMemory(return_messages=True)
 
-# ✅ 判断ログの保存
+# Save judgment result to Pinecone
 def save_judgment(input_text: str, result: str):
     memory_retriever.save_context({"input": input_text}, {"output": result})
-    print("✅ Pineconeに判断を記録しました")
+    print("Saved judgment to Pinecone.")
 
-# ✅ 類似判断の検索
+# Search similar judgment history
 def search_similar(input_text: str):
     return memory_retriever.load_memory_variables({"input": input_text})
 
-# ✅ 会話記録
+# Update chat history
 def update_conversation(user_input: str, bot_output: str):
     conversation_memory.save_context({"input": user_input}, {"output": bot_output})
 
-# ✅ 会話履歴の取得（直近n件）
+# Get recent conversation history (last n pairs)
 def get_conversation_history(limit=3):
     messages = conversation_memory.chat_memory.messages[-limit*2:]
     history = ""
@@ -55,9 +54,9 @@ def get_conversation_history(limit=3):
         history += f"input: {user}\noutput: {bot}\n"
     return history
 
-# ✅ 応答生成（仮のエコー応答）
+# Generate response (basic echo bot)
 def get_response(user_input: str):
     conversation_memory.chat_memory.add_user_message(user_input)
-    response = f"あなたの言ったこと: {user_input}"
+    response = f"You said: {user_input}"
     conversation_memory.chat_memory.add_ai_message(response)
     return response
