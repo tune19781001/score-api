@@ -1,5 +1,6 @@
 import os
 import json
+from upload_to_drive import upload_to_drive
 from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import Pinecone as LangchainPinecone
 from langchain.memory import VectorStoreRetrieverMemory
@@ -23,13 +24,16 @@ conversation_memory = ConversationBufferMemory(return_messages=True)
 # ✅ 保存ファイル名（JSON）
 MEMORY_LOG_FILE = "conversation_history.json"
 
-# ✅ 会話ログ保存関数
+# ✅ 会話ログ保存関数（＋Google Driveへアップロード）
 def save_conversation_to_file():
     messages = conversation_memory.chat_memory.messages
     data = [{"role": msg.type, "text": msg.content} for msg in messages]
     with open(MEMORY_LOG_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     print("✅ 会話履歴をファイルに保存しました")
+
+    # ✅ Google Drive にアップロード
+    upload_to_drive()
 
 # ✅ 判断ログ保存
 def save_judgment(input_text: str, result: str):
@@ -40,7 +44,7 @@ def save_judgment(input_text: str, result: str):
 def search_similar(input_text: str):
     return memory_retriever.load_memory_variables({"input": input_text})
 
-# ✅ 会話記録（＋ファイル保存）
+# ✅ 会話記録（＋保存＋Driveアップロード）
 def update_conversation(user_input: str, bot_output: str):
     conversation_memory.save_context({"input": user_input}, {"output": bot_output})
     save_conversation_to_file()
@@ -55,7 +59,7 @@ def get_conversation_history(limit=3):
         history += f"input: {user}\noutput: {bot}\n"
     return history
 
-# ✅ 応答生成
+# ✅ 応答生成（＋保存）
 def get_response(user_input: str):
     conversation_memory.chat_memory.add_user_message(user_input)
     response = f"You said: {user_input}"
