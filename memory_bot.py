@@ -1,28 +1,25 @@
-# memory_bot.py（Pinecone新SDK対応 + 会話補助あり）
+# memory_bot.py（Pinecone新SDK対応 + 会話補助あり + 最新LangChain準拠）
 
-from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.vectorstores import Pinecone as LangchainPinecone
+from langchain_openai import OpenAIEmbeddings
+from langchain_pinecone import Pinecone as LangchainPinecone
 from langchain.memory import VectorStoreRetrieverMemory
 from langchain.chains.conversation.memory import ConversationBufferMemory
-from pinecone import Pinecone, ServerlessSpec  # 新しいpinecone SDK（6.0以降）
+from pinecone import Pinecone, ServerlessSpec  # Pinecone公式SDK
 import os
 
 # ✅ Pinecone接続情報
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY", "pcsk_2Wt6v2_Rcics4ScEmeWne23uk1PF3VzyZA7EXKAgyMiGNdgVhDdJHCtsPp2LheYYVTSp78")
 INDEX_NAME = "judgment-log"
 
-# ✅ Pineconeクライアントインスタンス
+# ✅ Pineconeクライアントの初期化
 pc = Pinecone(api_key=PINECONE_API_KEY)
+index = pc.Index(INDEX_NAME)
 
 # ✅ Embeddings（OpenAI）
 embedding = OpenAIEmbeddings()
 
-# ✅ LangChain用ベクトルストア
-vectorstore = LangchainPinecone(
-    index_name=INDEX_NAME,
-    embedding=embedding,
-    pinecone=pc
-)
+# ✅ LangChain用ベクトルストア（最新版）
+vectorstore = LangchainPinecone(index, embedding)
 
 # ✅ 判断記憶用メモリ
 memory_retriever = VectorStoreRetrieverMemory(retriever=vectorstore.as_retriever())
