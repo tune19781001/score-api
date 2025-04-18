@@ -5,4 +5,4 @@ chromadb
 openai
 langchain-openai
 langchain-chroma
-pinecone-client
+pinecone
