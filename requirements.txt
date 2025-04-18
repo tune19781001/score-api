@@ -6,4 +6,5 @@ openai
 langchain-openai
 langchain-chroma
 pinecone
-langchain-pinecone
+langchain-pinecone==0.2.5
+
