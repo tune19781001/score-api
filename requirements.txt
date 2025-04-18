@@ -6,3 +6,4 @@ openai
 langchain-openai
 langchain-chroma
 pinecone
+langchain-pinecone
