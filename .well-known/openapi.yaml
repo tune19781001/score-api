@@ -72,7 +72,7 @@ paths:
                       type: string
                   judgment:
                     type: string
-                    description: 最終判定（🟢など）
+                    description: 最終判定（例：強気判断）
 
   /save_judgment:
     post:
@@ -90,7 +90,7 @@ paths:
                   description: 判断に使った自然文（例：VIXが18でRSIが29だった）
                 result:
                   type: string
-                  description: 結果として出した判断（例：🟢 強気判断）
+                  description: 結果として出した判断（例：強気判断）
               required:
                 - input
                 - result
